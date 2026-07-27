@@ -68,3 +68,21 @@ The pipeline processes user queries in a 3-step sequence:
    streamlit run app.py
    ```
    Open `http://localhost:8501` in your browser.
+
+---
+
+## 5. Short Implementation Note Summary
+
+### Technical Choices
+* **Embedding Model:** We selected `sentence-transformers/all-MiniLM-L6-v2` because it is lightweight (80MB), fast, runs completely locally (offline), and captures strong semantic meaning in short sentence groups.
+* **Storage/Index:** **Chroma DB** is used as our vector database because it is an embedded system (runs directly in-process without requiring a separate server database) and easily persists embedding indexes locally in the project folder using Cosine Similarity.
+* **LLM & Prompt Design:** We instantiated `gemma` locally via Ollama. The prompt is designed to wrap the retrieved source document segments in context boundaries and strictly instruct the model to respond using *only* this context, raising a clean warning if no matching information is found (avoiding hallucinated claims).
+
+### What We Learned/Researched
+* **Semantic Vector Splitting:** Learned how to set up `SemanticChunker` in LangChain to cluster sentences based on local embeddings instead of relying on arbitrary character splitters.
+* **Safe Terminal Printing:** Researched how to handle Unicode character set encoding for terminal printing on Windows systems to avoid character map translation crashes.
+* **Streamlit Session State:** Learned to synchronize imported global variable arrays with the user's Streamlit browser sessions.
+
+### Limitations & 2-Day Future Improvements
+* **Hybrid Search (Vector + BM25):** Vector search can sometimes overlook exact numerical matches (e.g. "1.86 lakh"). Combining dense vectors with BM25 lexical keyword matching would improve retrieval accuracy.
+* **Re-ranking Chunks:** Adding a local re-ranking layer (like Cohere or a local cross-encoder model) would sort the retrieved documents more accurately prior to passing them to the local LLM.
