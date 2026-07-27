@@ -4,6 +4,86 @@ A Retrieval-Augmented Generation (RAG) system built in Python to ingest, chunk, 
 
 ---
 
+## 📁 Project Directory Structure
+
+```text
+├── db/                                  # Local vector database storage
+│   └── chroma_db/                       # Chroma DB persistent store files (SQLite + index vectors)
+├── internship_document/                 # Folder containing source documents for ingestion
+│   └── Indian Health Transformation.pdf # Official Press Information Bureau (PIB) health PDF
+├── answer_generating.py                 # Script demonstrating end-to-end RAG question answering using Ollama
+├── app.py                               # Streamlit Web UI (Basic Single-Turn & Advanced Conversational modes)
+├── history_retrieval_convo_skill.py     # Core conversation engine (history tracking, query rewriting, and LLM prompting)
+├── ingestion_pipeline.py                # Document ingestion pipeline (loads, semantically chunks, and embeds the PDF)
+├── requirements.txt                     # Project python dependencies
+├── retrieval_pipeline.py                # Script demonstrating semantic search retrieval from Chroma DB
+├── runtime.txt                          # Target Python version configuration
+└── README.md                            # Project documentation (this file)
+```
+
+---
+
+## 📊 System Architecture & RAG Workflow
+
+The diagram below outlines the local semantic ingestion pipeline, multi-mode Streamlit UI, vector retrieval process, history-aware query rewriting, and LLM synthesis.
+
+```mermaid
+flowchart TD
+    %% Styling
+    classDef ingestion fill:#e1f5fe,stroke:#039be5,stroke-width:2px,color:#01579b;
+    classDef storage fill:#e8f5e9,stroke:#43a047,stroke-width:2px,color:#1b5e20;
+    classDef retrieval fill:#fff3e0,stroke:#fb8c00,stroke-width:2px,color:#e65100;
+    classDef llm fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
+    classDef app fill:#eceff1,stroke:#546e7a,stroke-width:2px,color:#263238;
+
+    subgraph INGESTION["1. Ingestion & Indexing Pipeline (ingestion_pipeline.py)"]
+        PDF["📄 Indian Health Transformation.pdf<br>(internship_document/)"] -->|Load PDF| Loader["⚙️ PyPDFLoader<br>(LangChain)"]
+        Loader -->|Document Pages| Chunker["✂️ SemanticChunker<br>(Percentile Threshold)"]
+        EmbedModel["🧠 sentence-transformers/<br>all-MiniLM-L6-v2"] <-->|Determine Semantic Boundaries| Chunker
+        Chunker -->|Cohesive Text Chunks| Embedding["🧮 HuggingFaceEmbeddings<br>(Generate 384D Vectors)"]
+        Embedding -->|Vector Embeddings & Chunks| DBStore["💾 Chroma DB<br>(db/chroma_db/)"]
+    end
+
+    subgraph RETRIEVAL["2. Search & Retrieval Pipeline (retrieval_pipeline.py)"]
+        DBStore <-->|Cosine Similarity Match| ChromaDB["🗄️ Chroma Vector DB<br>(hnsw:space: cosine)"]
+    end
+
+    subgraph APP["3. Streamlit Interface (app.py)"]
+        UserInput["👤 User Input Query"] --> UI_Mode{Select UI Mode}
+        UI_Mode -->|Basic Single-Turn| BasicFlow["⚡ Direct Query<br>(History cleared, K=5)"]
+        UI_Mode -->|Advanced Conversational| AdvFlow["💬 Conversational Query<br>(K=3)"]
+    end
+
+    subgraph CORE["4. Backend Conversation Engine (history_retrieval_convo_skill.py)"]
+        AdvFlow --> HistoryCheck{Chat History<br>Exists?}
+        HistoryCheck -->|Yes| Rewrite["📝 Standalone Question Rewrite<br>(gemma3:4b via Ollama)"]
+        HistoryCheck -->|No| Standalone["🔍 Standalone Query = User Query"]
+        Rewrite --> Standalone
+        BasicFlow --> Standalone
+        
+        Standalone -->|Embed Query| QueryEmbed["🧮 all-MiniLM-L6-v2 Embeddings"]
+        QueryEmbed -->|Query Vector| ChromaDB
+        ChromaDB -->|Top-K Context Chunks| ContextAssemble["🔗 Combine Context + System Instructions"]
+        
+        ContextAssemble --> Prompt["📝 Structured RAG Prompt"]
+        Prompt --> LLM["🤖 ChatOllama<br>(gemma3:4b Model)"]
+        LLM -->|Synthesized Response| OutResponse["✨ Grounded Answer"]
+        OutResponse -->|Update History| HistoryList["📚 Chat History Session State"]
+        HistoryList -.-> Rewrite
+    end
+
+    OutResponse -->|Display| AppDisplay["💻 Render in Streamlit UI"]
+
+    class PDF,Loader,Chunker ingestion;
+    class DBStore,ChromaDB storage;
+    class UserInput,UI_Mode,BasicFlow,AdvFlow,AppDisplay app;
+    class Standalone,QueryEmbed,ContextAssemble,Prompt retrieval;
+    class LLM,Rewrite,HistoryCheck,HistoryList,OutResponse llm;
+```
+
+---
+
+
 ## 1. Ingested and Chunked the PIB Document
 * **Ingestion:** The source PDF document (`Indian Health Transformation.pdf`) is loaded directly into Python memory using LangChain's `PyPDFLoader`. This parses each page of the document and extracts the text in-memory.
 * **Semantic Chunking:** Rather than using basic character limits, the document is split using LangChain's experimental `SemanticChunker`. 
