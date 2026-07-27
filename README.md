@@ -68,6 +68,7 @@ The pipeline processes user queries in a 3-step sequence:
    streamlit run app.py
    ```
    Open `http://localhost:8501` in your browser.
+   Deployment might take some time please be patient while it loads. 
 
 ---
 
