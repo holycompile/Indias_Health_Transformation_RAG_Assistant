@@ -48,10 +48,10 @@ flowchart TD
         DBStore <-->|Cosine Similarity Match| ChromaDB["🗄️ Chroma Vector DB<br>(hnsw:space: cosine)"]
     end
 
-    subgraph APP["3. Streamlit Interface (app.py)"]
-        UserInput["👤 User Input Query"] --> UI_Mode{Select UI Mode}
-        UI_Mode -->|Basic Single-Turn| BasicFlow["⚡ Direct Query<br>(History cleared, K=5)"]
-        UI_Mode -->|Advanced Conversational| AdvFlow["💬 Conversational Query<br>(K=3)"]
+    subgraph APP ["3. Streamlit Interface (app.py)"]
+        UserInput ["👤 User Input Query"] --> UI_Mode{Select UI Mode}
+        UI_Mode --> |Basic Single-Turn| BasicFlow["⚡ Direct Query<br>(History cleared, K=5)"]
+        UI_Mode --> |Advanced Conversational| AdvFlow["💬 Conversational Query<br>(K=3)"]
     end
 
     subgraph CORE["4. Backend Conversation Engine (history_retrieval_convo_skill.py)"]
