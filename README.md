@@ -4,7 +4,7 @@ A Retrieval-Augmented Generation (RAG) system built in Python to ingest, chunk, 
 
 ---
 
-## 1. How we Ingested and Chunked the PIB Document
+## 1. Ingested and Chunked the PIB Document
 * **Ingestion:** The source PDF document (`Indian Health Transformation.pdf`) is loaded directly into Python memory using LangChain's `PyPDFLoader`. This parses each page of the document and extracts the text in-memory.
 * **Semantic Chunking:** Rather than using basic character limits, the document is split using LangChain's experimental `SemanticChunker`. 
   * The chunker uses local HuggingFace embeddings to calculate the distance between consecutive sentences.
