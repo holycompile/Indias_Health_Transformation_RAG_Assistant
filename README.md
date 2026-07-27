@@ -78,7 +78,7 @@ The pipeline processes user queries in a 3-step sequence:
 * **Storage/Index:** **Chroma DB** is used as our vector database because it is an embedded system (runs directly in-process without requiring a separate server database) and easily persists embedding indexes locally in the project folder using Cosine Similarity.
 * **LLM & Prompt Design:** Instantiated `gemma` locally via Ollama. The prompt is designed to wrap the retrieved source document segments in context boundaries and strictly instruct the model to respond using *only* this context, raising a clean warning if no matching information is found (avoiding hallucinated claims).
 
-## Learning Journey & Acknowledgements
+### Learning Journey & Acknowledgements
 Honestly, I was familiar with the basic concepts of Python, machine learning, embeddings, and LLMs, but I had never built a complete Retrieval-Augmented Generation (RAG) pipeline from scratch.
 
 Over the past few days, I spent considerable time understanding how each component works rather than simply making the project run. While implementing the project, I learned about concepts such as document ingestion, semantic chunking, vector databases (ChromaDB), embeddings, retrieval pipelines, prompt engineering, conversational history, and integrating a local LLM using Ollama.
